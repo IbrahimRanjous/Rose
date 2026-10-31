@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>A Special Rose For You</title>
+  <title>اسف حبيبتي 🌹</title>
   <style>
     * {
       box-sizing: border-box;
@@ -12,7 +12,7 @@
       user-select: none;
     }
     body {
-      background: radial-gradient(circle at 50% 30%, #150811 0%, #080307 60%, #000000 100%);
+      background: radial-gradient(circle at 50% 30%, #180612 0%, #0a0307 60%, #000000 100%);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -40,10 +40,30 @@
       z-index: 10;
       pointer-events: none;
     }
-    /* Envelope Container */
+
+    /* نص الاعتذار فوق الوردة */
+    .apology-title {
+      position: absolute;
+      top: 10%;
+      font-size: 34px;
+      font-weight: 700;
+      color: #ffccd5;
+      text-shadow: 0 0 15px rgba(255, 77, 109, 0.8), 0 0 30px rgba(255, 77, 109, 0.4);
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 28;
+      letter-spacing: 1px;
+    }
+    .apology-title.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* المظروف التفاعلي */
     .envelope-wrapper {
       position: absolute;
-      bottom: 14%;
+      bottom: 12%;
       width: 320px;
       height: 200px;
       background: #7a1526;
@@ -62,10 +82,9 @@
     }
     .envelope-wrapper.opened {
       pointer-events: none;
-      transform: translateY(35px) scale(0.92);
+      transform: translateY(40px) scale(0.92);
       opacity: 0.85;
     }
-    /* Flap */
     .envelope-flap {
       position: absolute;
       top: 0;
@@ -82,7 +101,6 @@
       transform: rotateX(180deg);
       z-index: 5;
     }
-    /* Pocket */
     .envelope-pocket {
       position: absolute;
       bottom: 0;
@@ -95,7 +113,6 @@
       border-radius: 0 0 12px 12px;
       z-index: 22;
     }
-    /* Wax Seal */
     .wax-seal {
       position: absolute;
       top: 85px;
@@ -133,19 +150,19 @@
       opacity: 0;
     }
 
-    /* Message Card */
+    /* بطاقة الرسالة */
     .letter-card {
       position: absolute;
-      bottom: 25%;
+      bottom: 23%;
       width: 380px;
       max-width: 90vw;
-      background: rgba(22, 10, 16, 0.85);
+      background: rgba(22, 10, 16, 0.88);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 120, 150, 0.25);
       border-radius: 16px;
-      padding: 24px;
+      padding: 22px;
       text-align: center;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(220, 38, 70, 0.2);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(220, 38, 70, 0.25);
       z-index: 30;
       opacity: 0;
       transform: translateY(40px) scale(0.9);
@@ -158,51 +175,59 @@
       pointer-events: auto;
     }
     .card-title {
-      font-size: 20px;
+      font-size: 19px;
       color: #ff94ab;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       font-weight: 600;
     }
     .card-body {
       font-size: 15px;
       line-height: 1.8;
       color: #f7e6eb;
-      min-height: 55px;
+      min-height: 50px;
     }
     .btn-reset {
-      margin-top: 15px;
+      margin-top: 14px;
       background: linear-gradient(135deg, #a81c39, #690a1f);
       border: 1px solid #ff7b97;
       color: #fff;
-      padding: 8px 22px;
+      padding: 7px 20px;
       border-radius: 20px;
       font-size: 13px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(220, 38, 70, 0.4);
-      transition: transform 0.2s, background 0.3s;
+      transition: transform 0.2s;
     }
     .btn-reset:hover {
       transform: scale(1.05);
-      background: linear-gradient(135deg, #c42345, #7d0d26);
     }
   </style>
 </head>
 <body>
 
+  <!-- ملف الصوت: يشغل ملف music.mp3 الموجود في نفس المجلد -->
+  <audio id="bgMusic" preload="auto">
+    <source src="music.mp3" type="audio/mpeg">
+    <source src="music.wav" type="audio/wav">
+    <source src="music.ogg" type="audio/ogg">
+  </audio>
+
   <div class="scene-container">
+    <!-- عنوان الاعتذار فوق الوردة -->
+    <div class="apology-title" id="apologyTitle">اسف حبيبتي 🤍</div>
+
     <canvas id="roseCanvas"></canvas>
 
-    <!-- Interactive Envelope -->
+    <!-- المظروف -->
     <div class="envelope-wrapper" id="envelope" onclick="openEnvelope()">
       <div class="envelope-flap"></div>
       <div class="envelope-pocket"></div>
       <div class="wax-seal">💌</div>
-      <div class="prompt-text">اضغط لفتح الرسالة ✨</div>
+      <div class="prompt-text">اضغطي هنا لفتح الرسالة ✨</div>
     </div>
 
-    <!-- Letter Card with Romantic Text -->
+    <!-- البطاقة المنبثقة -->
     <div class="letter-card" id="letterCard">
-      <div class="card-title">إلى من تسكن القلب 🌹</div>
+      <div class="card-title">من كل قلبي 🌹</div>
       <div class="card-body" id="cardBodyText"></div>
       <button class="btn-reset" onclick="resetAnimation()">إعادة العرض ↻</button>
     </div>
@@ -214,6 +239,8 @@
     const envelope = document.getElementById('envelope');
     const letterCard = document.getElementById('letterCard');
     const cardBodyText = document.getElementById('cardBodyText');
+    const apologyTitle = document.getElementById('apologyTitle');
+    const bgMusic = document.getElementById('bgMusic');
 
     let width, height;
     function resize() {
@@ -223,35 +250,9 @@
     window.addEventListener('resize', resize);
     resize();
 
-    // Sound Synthesizer via Web Audio API
-    let audioCtx = null;
-    function playHarpBloomSound() {
-      try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
-        notes.forEach((freq, idx) => {
-          setTimeout(() => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.2, audioCtx.currentTime + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.6);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 1.8);
-          }, idx * 160);
-        });
-      } catch (e) {}
-    }
-
-    // Animation States
     let isOpened = false;
-    let bloomProgress = 0; // 0 to 1
-    let stemGrowth = 0;    // 0 to 1
+    let bloomProgress = 0;
+    let stemGrowth = 0;
     let particles = [];
 
     class Sparkle {
@@ -286,9 +287,19 @@
       if (isOpened) return;
       isOpened = true;
       envelope.classList.add('opened');
-      playHarpBloomSound();
 
-      // Emit particles
+      // تشغيل الأغنية فور النقر
+      if (bgMusic) {
+        bgMusic.currentTime = 0;
+        bgMusic.play().catch(e => console.log("الصوت بانتظار إذن المتصفح:", e));
+      }
+
+      // إظهار نص "اسف حبيبتي"
+      setTimeout(() => {
+        apologyTitle.classList.add('visible');
+      }, 500);
+
+      // شرارات ذهبية ووردية
       const envRect = envelope.getBoundingClientRect();
       const originX = envRect.left + envRect.width / 2;
       const originY = envRect.top + 30;
@@ -296,13 +307,12 @@
         particles.push(new Sparkle(originX, originY));
       }
 
-      // Smooth Growth Timeline
+      // حركة نمو الساق وتفتح الوردة
       let start = null;
       function animateGrowth(timestamp) {
         if (!start) start = timestamp;
         const elapsed = (timestamp - start) / 1000;
 
-        // Stem grows first
         if (elapsed < 1.2) {
           stemGrowth = Math.min(1, elapsed / 1.1);
         } else {
@@ -321,7 +331,7 @@
 
     function showCard() {
       letterCard.classList.add('visible');
-      const message = "لو كان للجمال عنوان لكان ابتسامتكِ، وهذه الوردة أقل ما يُهدى لعينيكِ الرقيقتين...";
+      const message = "حقك عليي وما عاش يلي يزعلك.. بتمنى هالوردة وهالكلمات البسيطة ترجع الضحكة لقلبك وعيونك الحلوين.";
       let i = 0;
       cardBodyText.textContent = "";
       function type() {
@@ -340,10 +350,15 @@
       stemGrowth = 0;
       envelope.classList.remove('opened');
       letterCard.classList.remove('visible');
+      apologyTitle.classList.remove('visible');
       cardBodyText.textContent = "";
+      if (bgMusic) {
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+      }
     }
 
-    // DRAWING THE ULTRA-HD REALISTIC ROSE
+    // رسم الساق
     function drawStem(cx, cy, targetY) {
       if (stemGrowth <= 0) return;
       ctx.save();
@@ -357,7 +372,6 @@
       ctx.lineCap = 'round';
       ctx.stroke();
 
-      // Stem highlight
       ctx.beginPath();
       ctx.moveTo(cx - 1, cy);
       ctx.bezierCurveTo(cx - 21, cy - 80 * stemGrowth, cx + 16, currentTop + 50, cx - 1, currentTop);
@@ -365,7 +379,6 @@
       ctx.strokeStyle = '#5bb846';
       ctx.stroke();
 
-      // Leaves
       if (stemGrowth > 0.45) {
         const leafProg = Math.min(1, (stemGrowth - 0.45) / 0.55);
         drawLeaf(cx - 10, cy - 100 * stemGrowth, -1, leafProg);
@@ -391,7 +404,6 @@
       ctx.fillStyle = leafGrad;
       ctx.fill();
 
-      // Rib
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.quadraticCurveTo(50, 0, 92, 10);
@@ -401,6 +413,7 @@
       ctx.restore();
     }
 
+    // رسم بتلة الوردة
     function drawPetal(cx, cy, angle, length, widthScale, curl, colorA, colorB, rimColor) {
       ctx.save();
       ctx.translate(cx, cy);
@@ -422,7 +435,6 @@
       ctx.shadowBlur = 10;
       ctx.fill();
 
-      // Silky Glowing Edge
       ctx.strokeStyle = rimColor;
       ctx.lineWidth = 1.8;
       ctx.shadowColor = rimColor;
@@ -431,11 +443,11 @@
       ctx.restore();
     }
 
+    // تجميع الوردة الواقعية
     function drawRealisticRose(cx, cy, prog) {
       if (prog <= 0) return;
       ctx.save();
 
-      // Calyx Sepals (green leaves under the flower)
       const sepals = 5;
       for (let s = 0; s < sepals; s++) {
         const ang = (s / sepals) * Math.PI * 2 + 0.3;
@@ -451,7 +463,7 @@
         ctx.restore();
       }
 
-      // Outer Back Petals
+      // الطبقة الخارجية
       const backPetals = 6;
       for (let i = 0; i < backPetals; i++) {
         const angle = (i / backPetals) * Math.PI * 2;
@@ -460,7 +472,7 @@
         drawPetal(cx, cy, angle, len, wid, 0.9, '#a8132e', '#660515', 'rgba(255,140,165,0.4)');
       }
 
-      // Middle Flared Petals (Velvet depth)
+      // الطبقة الوسطى
       const midPetals = 7;
       for (let i = 0; i < midPetals; i++) {
         const angle = (i / midPetals) * Math.PI * 2 + 0.45;
@@ -469,7 +481,7 @@
         drawPetal(cx, cy, angle, len, wid, 0.75, '#c91838', '#80091d', 'rgba(255,170,190,0.5)');
       }
 
-      // Inner Embracing Petals
+      // الطبقة الداخلية
       const innerPetals = 8;
       for (let i = 0; i < innerPetals; i++) {
         const angle = (i / innerPetals) * Math.PI * 2 + 0.85;
@@ -478,7 +490,7 @@
         drawPetal(cx, cy, angle, len, wid, 0.6, '#e02447', '#9e0d26', 'rgba(255,190,205,0.65)');
       }
 
-      // Central Tight Spiral Core (Bud center)
+      // قلب البرعم
       const coreSize = 34 * Math.min(1, prog * 1.2);
       ctx.save();
       ctx.translate(cx, cy - 6 * prog);
@@ -492,7 +504,6 @@
       ctx.fillStyle = coreGrad;
       ctx.fill();
 
-      // Spiral swirl in the middle
       ctx.beginPath();
       ctx.arc(0, 0, coreSize * 0.7, 0.2, Math.PI * 1.4);
       ctx.strokeStyle = 'rgba(255, 200, 215, 0.75)';
@@ -509,7 +520,6 @@
       ctx.restore();
     }
 
-    // MAIN RENDER LOOP
     function loop() {
       ctx.clearRect(0, 0, width, height);
 
@@ -518,13 +528,11 @@
       const originY = envRect.top + 70;
       const targetRoseY = height * 0.38;
 
-      // Draw Stem & Rose
       if (isOpened) {
         drawStem(originX, originY, targetRoseY);
         drawRealisticRose(originX, targetRoseY, bloomProgress);
       }
 
-      // Update and Draw Floating Sparkles
       for (let i = particles.length - 1; i >= 0; i--) {
         particles[i].update();
         particles[i].draw(ctx);
