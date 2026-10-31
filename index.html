@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Special Rose For You</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    body {
+      background: radial-gradient(circle at 50% 30%, #150811 0%, #080307 60%, #000000 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
+    }
+    .scene-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    canvas#roseCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+    }
+    /* Envelope Container */
+    .envelope-wrapper {
+      position: absolute;
+      bottom: 14%;
+      width: 320px;
+      height: 200px;
+      background: #7a1526;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.75), 0 0 35px rgba(186, 24, 52, 0.3);
+      z-index: 20;
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .envelope-wrapper:hover {
+      transform: scale(1.04) translateY(-5px);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.85), 0 0 45px rgba(220, 38, 70, 0.45);
+    }
+    .envelope-wrapper.opened {
+      pointer-events: none;
+      transform: translateY(35px) scale(0.92);
+      opacity: 0.85;
+    }
+    /* Flap */
+    .envelope-flap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      border-left: 160px solid transparent;
+      border-right: 160px solid transparent;
+      border-top: 110px solid #991b32;
+      transform-origin: top;
+      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 25;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    }
+    .envelope-wrapper.opened .envelope-flap {
+      transform: rotateX(180deg);
+      z-index: 5;
+    }
+    /* Pocket */
+    .envelope-pocket {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-left: 160px solid #63101e;
+      border-right: 160px solid #63101e;
+      border-bottom: 105px solid #520d18;
+      border-radius: 0 0 12px 12px;
+      z-index: 22;
+    }
+    /* Wax Seal */
+    .wax-seal {
+      position: absolute;
+      top: 85px;
+      width: 48px;
+      height: 48px;
+      background: radial-gradient(circle at 35% 35%, #ffd15c, #d48b13 70%, #945805);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 0 15px rgba(255, 215, 0, 0.5);
+      z-index: 26;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      animation: pulseGlow 2.2s infinite ease-in-out;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.4)); }
+      50% { transform: scale(1.08); filter: drop-shadow(0 0 14px rgba(255, 215, 0, 0.8)); }
+    }
+    .envelope-wrapper.opened .wax-seal {
+      opacity: 0;
+      transform: scale(0.2);
+    }
+    .prompt-text {
+      position: absolute;
+      bottom: -40px;
+      font-size: 15px;
+      letter-spacing: 1px;
+      color: #ffd6df;
+      text-shadow: 0 0 10px rgba(255, 90, 130, 0.6);
+      transition: opacity 0.5s ease;
+    }
+    .envelope-wrapper.opened .prompt-text {
+      opacity: 0;
+    }
+
+    /* Message Card */
+    .letter-card {
+      position: absolute;
+      bottom: 25%;
+      width: 380px;
+      max-width: 90vw;
+      background: rgba(22, 10, 16, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 120, 150, 0.25);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(220, 38, 70, 0.2);
+      z-index: 30;
+      opacity: 0;
+      transform: translateY(40px) scale(0.9);
+      transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+    .letter-card.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+    .card-title {
+      font-size: 20px;
+      color: #ff94ab;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .card-body {
+      font-size: 15px;
+      line-height: 1.8;
+      color: #f7e6eb;
+      min-height: 55px;
+    }
+    .btn-reset {
+      margin-top: 15px;
+      background: linear-gradient(135deg, #a81c39, #690a1f);
+      border: 1px solid #ff7b97;
+      color: #fff;
+      padding: 8px 22px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(220, 38, 70, 0.4);
+      transition: transform 0.2s, background 0.3s;
+    }
+    .btn-reset:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #c42345, #7d0d26);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scene-container">
+    <canvas id="roseCanvas"></canvas>
+
+    <!-- Interactive Envelope -->
+    <div class="envelope-wrapper" id="envelope" onclick="openEnvelope()">
+      <div class="envelope-flap"></div>
+      <div class="envelope-pocket"></div>
+      <div class="wax-seal">💌</div>
+      <div class="prompt-text">اضغط لفتح الرسالة ✨</div>
+    </div>
+
+    <!-- Letter Card with Romantic Text -->
+    <div class="letter-card" id="letterCard">
+      <div class="card-title">إلى من تسكن القلب 🌹</div>
+      <div class="card-body" id="cardBodyText"></div>
+      <button class="btn-reset" onclick="resetAnimation()">إعادة العرض ↻</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('roseCanvas');
+    const ctx = canvas.getContext('2d');
+    const envelope = document.getElementById('envelope');
+    const letterCard = document.getElementById('letterCard');
+    const cardBodyText = document.getElementById('cardBodyText');
+
+    let width, height;
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Sound Synthesizer via Web Audio API
+    let audioCtx = null;
+    function playHarpBloomSound() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.2, audioCtx.currentTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.6);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1.8);
+          }, idx * 160);
+        });
+      } catch (e) {}
+    }
+
+    // Animation States
+    let isOpened = false;
+    let bloomProgress = 0; // 0 to 1
+    let stemGrowth = 0;    // 0 to 1
+    let particles = [];
+
+    class Sparkle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 3;
+        this.vy = -Math.random() * 2.5 - 1;
+        this.size = Math.random() * 3 + 1.5;
+        this.alpha = 1;
+        this.color = Math.random() > 0.4 ? '#ffd166' : '#ff4d6d';
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.alpha -= 0.012;
+      }
+      draw(c) {
+        c.save();
+        c.globalAlpha = Math.max(0, this.alpha);
+        c.fillStyle = this.color;
+        c.shadowColor = this.color;
+        c.shadowBlur = 8;
+        c.beginPath();
+        c.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        c.fill();
+        c.restore();
+      }
+    }
+
+    function openEnvelope() {
+      if (isOpened) return;
+      isOpened = true;
+      envelope.classList.add('opened');
+      playHarpBloomSound();
+
+      // Emit particles
+      const envRect = envelope.getBoundingClientRect();
+      const originX = envRect.left + envRect.width / 2;
+      const originY = envRect.top + 30;
+      for (let i = 0; i < 45; i++) {
+        particles.push(new Sparkle(originX, originY));
+      }
+
+      // Smooth Growth Timeline
+      let start = null;
+      function animateGrowth(timestamp) {
+        if (!start) start = timestamp;
+        const elapsed = (timestamp - start) / 1000;
+
+        // Stem grows first
+        if (elapsed < 1.2) {
+          stemGrowth = Math.min(1, elapsed / 1.1);
+        } else {
+          stemGrowth = 1;
+          bloomProgress = Math.min(1, (elapsed - 1.2) / 2.0);
+        }
+
+        if (bloomProgress >= 1) {
+          showCard();
+        } else {
+          requestAnimationFrame(animateGrowth);
+        }
+      }
+      requestAnimationFrame(animateGrowth);
+    }
+
+    function showCard() {
+      letterCard.classList.add('visible');
+      const message = "لو كان للجمال عنوان لكان ابتسامتكِ، وهذه الوردة أقل ما يُهدى لعينيكِ الرقيقتين...";
+      let i = 0;
+      cardBodyText.textContent = "";
+      function type() {
+        if (i < message.length) {
+          cardBodyText.textContent += message.charAt(i);
+          i++;
+          setTimeout(type, 45);
+        }
+      }
+      type();
+    }
+
+    function resetAnimation() {
+      isOpened = false;
+      bloomProgress = 0;
+      stemGrowth = 0;
+      envelope.classList.remove('opened');
+      letterCard.classList.remove('visible');
+      cardBodyText.textContent = "";
+    }
+
+    // DRAWING THE ULTRA-HD REALISTIC ROSE
+    function drawStem(cx, cy, targetY) {
+      if (stemGrowth <= 0) return;
+      ctx.save();
+      const currentTop = cy - (cy - targetY) * stemGrowth;
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.bezierCurveTo(cx - 20, cy - 80 * stemGrowth, cx + 18, currentTop + 50, cx, currentTop);
+      ctx.lineWidth = 9;
+      ctx.strokeStyle = '#22551e';
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // Stem highlight
+      ctx.beginPath();
+      ctx.moveTo(cx - 1, cy);
+      ctx.bezierCurveTo(cx - 21, cy - 80 * stemGrowth, cx + 16, currentTop + 50, cx - 1, currentTop);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#5bb846';
+      ctx.stroke();
+
+      // Leaves
+      if (stemGrowth > 0.45) {
+        const leafProg = Math.min(1, (stemGrowth - 0.45) / 0.55);
+        drawLeaf(cx - 10, cy - 100 * stemGrowth, -1, leafProg);
+        drawLeaf(cx + 8, cy - 160 * stemGrowth, 1, leafProg);
+      }
+      ctx.restore();
+    }
+
+    function drawLeaf(x, y, dir, prog) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(dir * prog, prog);
+      ctx.rotate(-0.35);
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(40, -25, 75, -15, 95, 10);
+      ctx.bezierCurveTo(65, 35, 30, 25, 0, 0);
+      const leafGrad = ctx.createLinearGradient(0, -20, 95, 20);
+      leafGrad.addColorStop(0, '#286b24');
+      leafGrad.addColorStop(0.7, '#3c8c36');
+      leafGrad.addColorStop(1, '#1e4a1a');
+      ctx.fillStyle = leafGrad;
+      ctx.fill();
+
+      // Rib
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(50, 0, 92, 10);
+      ctx.strokeStyle = '#6edb5e';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawPetal(cx, cy, angle, length, widthScale, curl, colorA, colorB, rimColor) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+
+      const grad = ctx.createRadialGradient(0, -length * 0.4, length * 0.1, 0, -length * 0.5, length);
+      grad.addColorStop(0, colorA);
+      grad.addColorStop(0.65, colorB);
+      grad.addColorStop(1, '#3b000a');
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(-widthScale * 0.7, -length * 0.35, -widthScale, -length * 0.85, -widthScale * curl, -length);
+      ctx.bezierCurveTo(0, -length * 1.15, widthScale * curl, -length, widthScale, -length * 0.85);
+      ctx.bezierCurveTo(widthScale * 0.7, -length * 0.35, 0, 0, 0, 0);
+
+      ctx.fillStyle = grad;
+      ctx.shadowColor = 'rgba(0,0,0,0.45)';
+      ctx.shadowBlur = 10;
+      ctx.fill();
+
+      // Silky Glowing Edge
+      ctx.strokeStyle = rimColor;
+      ctx.lineWidth = 1.8;
+      ctx.shadowColor = rimColor;
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawRealisticRose(cx, cy, prog) {
+      if (prog <= 0) return;
+      ctx.save();
+
+      // Calyx Sepals (green leaves under the flower)
+      const sepals = 5;
+      for (let s = 0; s < sepals; s++) {
+        const ang = (s / sepals) * Math.PI * 2 + 0.3;
+        ctx.save();
+        ctx.translate(cx, cy + 10);
+        ctx.rotate(ang);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(15 * prog, 20 * prog, 28 * prog, 55 * prog);
+        ctx.quadraticCurveTo(5 * prog, 35 * prog, 0, 0);
+        ctx.fillStyle = '#2b6e22';
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Outer Back Petals
+      const backPetals = 6;
+      for (let i = 0; i < backPetals; i++) {
+        const angle = (i / backPetals) * Math.PI * 2;
+        const len = (95 + Math.sin(i * 2) * 8) * prog;
+        const wid = 75 * prog;
+        drawPetal(cx, cy, angle, len, wid, 0.9, '#a8132e', '#660515', 'rgba(255,140,165,0.4)');
+      }
+
+      // Middle Flared Petals (Velvet depth)
+      const midPetals = 7;
+      for (let i = 0; i < midPetals; i++) {
+        const angle = (i / midPetals) * Math.PI * 2 + 0.45;
+        const len = (82 + Math.cos(i) * 6) * prog;
+        const wid = 62 * prog;
+        drawPetal(cx, cy, angle, len, wid, 0.75, '#c91838', '#80091d', 'rgba(255,170,190,0.5)');
+      }
+
+      // Inner Embracing Petals
+      const innerPetals = 8;
+      for (let i = 0; i < innerPetals; i++) {
+        const angle = (i / innerPetals) * Math.PI * 2 + 0.85;
+        const len = (62 + (i % 2) * 5) * prog;
+        const wid = 44 * prog;
+        drawPetal(cx, cy, angle, len, wid, 0.6, '#e02447', '#9e0d26', 'rgba(255,190,205,0.65)');
+      }
+
+      // Central Tight Spiral Core (Bud center)
+      const coreSize = 34 * Math.min(1, prog * 1.2);
+      ctx.save();
+      ctx.translate(cx, cy - 6 * prog);
+      ctx.beginPath();
+      ctx.arc(0, 0, coreSize, 0, Math.PI * 2);
+      const coreGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, coreSize);
+      coreGrad.addColorStop(0, '#ffa8b8');
+      coreGrad.addColorStop(0.3, '#d81e42');
+      coreGrad.addColorStop(0.85, '#5e0312');
+      coreGrad.addColorStop(1, '#240006');
+      ctx.fillStyle = coreGrad;
+      ctx.fill();
+
+      // Spiral swirl in the middle
+      ctx.beginPath();
+      ctx.arc(0, 0, coreSize * 0.7, 0.2, Math.PI * 1.4);
+      ctx.strokeStyle = 'rgba(255, 200, 215, 0.75)';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, coreSize * 0.4, Math.PI * 0.6, Math.PI * 1.9);
+      ctx.strokeStyle = 'rgba(255, 230, 240, 0.85)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.restore();
+    }
+
+    // MAIN RENDER LOOP
+    function loop() {
+      ctx.clearRect(0, 0, width, height);
+
+      const envRect = envelope.getBoundingClientRect();
+      const originX = envRect.left + envRect.width / 2;
+      const originY = envRect.top + 70;
+      const targetRoseY = height * 0.38;
+
+      // Draw Stem & Rose
+      if (isOpened) {
+        drawStem(originX, originY, targetRoseY);
+        drawRealisticRose(originX, targetRoseY, bloomProgress);
+      }
+
+      // Update and Draw Floating Sparkles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        particles[i].draw(ctx);
+        if (particles[i].alpha <= 0) particles.splice(i, 1);
+      }
+
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>
